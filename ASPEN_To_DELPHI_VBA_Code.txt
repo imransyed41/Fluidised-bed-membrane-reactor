@@ -1,0 +1,117 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+  
+  'Assign the cell  according to the last variable in  Aspen calculator
+   If Target.Address = "$A$17" Then
+        
+        'Calling subroutines and function
+        Call GenerateInputFile
+        Call RunDelphi
+        Call WaitTimer
+        Call CopyDataToExcel
+        
+    End If
+    
+End Sub
+
+Sub GenerateInputFile()
+          
+    'Declaring variables
+    Dim sLine As String
+    Dim sFileName As String
+    Dim intFileNumber As Integer
+    Dim lCounter As Range
+    Dim lLastRow As Integer
+    Dim i As Integer
+    
+    'Just showing where the input data are
+    ActiveSheet.Select
+    Range("A1").Select
+    
+   'Find the last row which contains data
+    'Row starts from the bottom cell of ColA and looks upward until it finds the first (looking upwards) nonblank cell
+    With Sheet1
+        lLastRow = ActiveSheet.Cells(Rows.Count, "A").End(xlUp).Row
+    End With
+    
+    'Setting the name and the path of text file based on workbook path
+    sFileName = "D:\FBMR_eidted\input.txt"
+    
+    'Get an unused file number
+    intFileNumber = FreeFile
+    
+    'Create a new file (or overwrite an existing one)
+    Open sFileName For Output As #intFileNumber
+      
+    'Read specific data from the worksheet
+    For i = 1 To lLastRow
+                    
+        'Copy data from given range
+        sLine = Range("A" & i).Value
+        
+        'print command can write in any text file system
+        Print #intFileNumber, sLine
+     
+    Next i
+  
+    'Close the file
+    Close #intFileNumber
+         
+End Sub
+
+Sub CopyDataToExcel()
+
+'Declaring variables
+Dim LineNumber As Integer
+Dim FilePath As String, FileName As String
+Dim LineText As String
+Dim outFileNumber As Integer
+
+'Line number of the text
+LineNumber = 1
+
+'Get an unused file number
+outFileNumber = FreeFile
+
+'Setting the name and the path of text file based on workbook path
+FilePath = "D:\FBMR_eidted\"
+FileName = "output.txt"
+
+'Write on new or existing file
+Open FilePath & FileName For Input As #outFileNumber
+    
+    'start the loop to write the data into the excel file
+    Do While Not EOF(outFileNumber)
+        
+        'Transfer text to the current file
+        Line Input #outFileNumber, LineText
+        
+        'Write the data in the given range of file system
+        Range("D" & LineNumber).Value = LineText & ""
+        
+        'Make an increment to the line number at the end of each cycle
+        LineNumber = LineNumber + 1
+    
+    Loop
+    
+'Close the file
+Close #outFileNumber
+
+End Sub
+
+Sub WaitTimer()
+
+'Wait command for the executable model to finalize its result in an output file
+Application.Wait Now() + TimeSerial(0, 0, 10)
+
+End Sub
+
+'Use the Shell function from within a macro
+Sub RunDelphi()
+
+Dim RetVal
+
+Directory$ = "D:\FBMR_eidted\"
+    eseguibile$ = Directory + "FBMR.exe "
+    ChDir Directory$
+    Shell eseguibile, vbNormalFocus
+End Sub
